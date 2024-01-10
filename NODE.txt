@@ -1,0 +1,331 @@
+******************************************************************************************************************************************************************************************
+******************************************************************************************************************************************************************************************
+NODE
+******************************************************************************************************************************************************************************************
+Introduction
+
+- There is no WINDOW object in Node because there is no browser
+
+Few Global Variables available in Node:
+
+1.__dirname - path to current directory
+2.__filename - file name
+3.require    - function to use modules (CommonJS)
+4.nodule     - info about current modules (file)
+5.process    - info about env where the program is being executed
+
+NB: setInterval() and setTimeout() are both available in Node
+
+Example:
+
+setInterval(() => {
+  console.log('hello world');
+}, 1000);
+
+Prints:
+hello world
+hello world
+hello world
+hello world
+.
+.
+ NB: It prints 'hello world' every 1 second. To stop, press Ctrl + C
+******************************************************************************************************************************************************************************************
+Modules
+
+- CommonJS, Every file is a module (by default)
+- Modules are encapsulated code (Only share minimum)
+
+Example:
+
+const john = 'john'
+const peter = 'peter'
+
+const sayHi = (name) => {
+    console.log(`Hello there ${name}`)
+}
+
+sayHi(john)
+sayHi(peter)
+
+NB: We need to separate the code and put it in different files:
+
+Example:
+
+In locals.js:
+
+const john = 'john'
+const peter = 'peter'
+
+module.exports = { john, peter }
+
+NB: We have exported the constants john and peter to be used in other files
+
+In utils.js:
+
+const sayHi = (name) => {
+    console.log(`Hello there ${name}`)
+}
+
+module.exports = sayHi
+
+NB: We have exported the sayHi function to be used in other files
+
+In app.js: Example1
+
+const names = require(./locals)
+const sayHi = require(./utils)
+
+sayHi(names.john)
+sayHi(names.peter)
+
+In app.js: Example2
+
+const { john, peter } = require(./locals)
+const sayHi = require(./utils)
+
+sayHi(john)
+sayHi(peter)
+
+Prints:
+
+Hello there john
+Hello there peter
+
+NB: Both Example 1 and 2 will work
+
+Alternative Method
+
+Example2:
+
+const items = ['item1', 'item2']
+const person = {
+    name: 'bob'
+}
+
+NB: We need to export the code so that it can be used by different files:
+
+Example:
+
+In alternative-flavor.js:
+
+module.exports items = ['item1', 'item2']
+const person = {
+    name: 'bob'
+}
+
+module.exports.singlePerson = person
+
+NB: We have exported the items array and person object as singlePerson to be used in other files
+
+In app.js: Example1
+
+const data = require('./alternative-flavor')
+
+NB: Now they can be used from the data constant e.g data.items
+
+Example3:
+
+In 7-mind-grenade.js:
+
+const num1 = 5;
+const num2 = 10;
+
+function addValues(){
+    console.log(`the sum is : ${num1 + num2}`)
+}
+
+addValues();
+
+In app.js:
+
+require('./7-mind-grenade')
+
+Type node app.js and press Enter
+
+Prints: the sum is : 15
+
+NB: We did not export in 7-mind-grenade file but it printed in app.js because the function was invoked
+- It can be useful when we have a complex function in one file which has already been invoked, then we run the code in another file
+
+******************************************************************************************************************************************************************************************
+Built-in Modules
+
+1.OS
+2.PATH
+3.FS
+4.HTTP
+
+1.OS Module Examples
+
+//Built-in Modules
+
+const os = require('os') //Note we dont use ./ for built-in modules
+
+//Info about current user
+const user = os.userInfo()
+
+console.log(user)
+
+//method returns the system uptime in seconds
+console.log(`The system Uptime is ${os.uptime()} seconds`)
+
+const currentOS = {
+    name: os.type(), //OS Type
+    release: os.release(),  //Release
+    totalMem: os.totalmem(), //Total Memory
+    freeMem: os.freemem() //Free Memory
+}
+
+console.log(currentOS)
+
+2.Path Module Examples
+
+const path = require('path')
+
+console.log(path.sep)  //returns platform separator
+
+const filePath = path.join('/content', 'subfolder', 'test.txt')
+console.log(filePath)  //Retuens the filePath : /content/subfolder/test.txt
+
+const base = path.basename(filePath)
+console.log(base)  //Returns the base name from a filePath : test.txt
+
+const absolute = path.resolve(__dirname, 'content', 'subfolder', 'test.txt')
+console.log(absolute)  //Returns the absolute path of test.txt: C:\Users\nkocy\OneDrive\Documents\NODE-EXPRESS\content\subfolder\test.txt
+
+//NB: This can be useful as the file path in our computer will be different from the one where we deploy
+
+3.FS Module Examples
+
+Create two text files in a folder e.g first.txt and second.txt both in content folder with texts: Hello this is first text file and Hello this is second text file
+
+i.Synchronous Method:
+
+const { readFileSync, writeFileSync } = require('fs')
+
+// const fs = require('fs') //This method is the same as the above just different syntaxes
+// fs.readFileSync
+
+// Reading Files
+const first = readFileSync('./content/first.txt','utf-8')
+const second = readFileSync('./content/second.txt','utf-8')
+
+console.log(first, second)
+
+// Writing to FileSystem or creating a file
+writeFileSync('./content/result-sync.txt', `Here is the result ${first}, ${second}`)  //This method overwrites everything if the file exists
+
+//To append use {flag: a}
+writeFileSync('./content/result-sync.txt', `Here is the result ${first}, ${second}`, {flag: a}) //This will append the new text to the existing one
+
+Prints: 
+
+Hello this is first text file Hello this is second text file
+
+- Creates text file result-sync.txt in content folder and inserts text: Here is the result Hello this is first text file, Hello this is second text file
+
+- Appends to the text file result-sync.txt in content folder and appends text: Here is the result Hello this is first text file, Hello this is second text file to
+text: Here is the result Hello this is first text file, Hello this is second text file and the final text is: 
+Here is the result Hello this is first text file, Hello this is second text file Here is the result Hello this is first text file, Hello this is second text file
+
+iiAsynchronous Method:
+
+- This method uses callback functions 
+
+const { readFile, writeFile } = require('fs')
+
+readFile('./content/first.txt', 'utf-8', (err, result) => {
+    if(err){
+        console.log(err)
+        return
+    }
+    const first = result
+
+    readFile('./content/second.txt', 'utf-8', (err, result) => {
+        if(err){
+            console.log(err)
+            return
+        }
+        const second = result
+
+        writeFile('./content/result-async.txt', `Here is the result ${first}, ${second}`, (err, result) => {
+            if(err){
+                console.log(err)
+                return
+            }
+            console.log(result)
+        })
+    })
+})
+
+Prints: 
+
+Hello this is first text file Hello this is second text file
+
+- Creates text file result-sync.txt in content folder and inserts text: Here is the result Hello this is first text file, Hello this is second text file
+
+4.HTTP Module
+
+Example:
+
+const http = require('http');
+
+//create server
+const server = http.createServer((req, res) => {
+    // res.write('Welcome to our home page')
+    // res.end()
+    if(req.url === '/'){
+        res.end('Welcome to our home page')
+    }else if(req.url === '/about'){
+        res.end('Here is our short history')
+    }else{
+    // This is not advisable but it is possible
+        res.end(`<h1>Opps</h1>
+            <p>We cant seem to find the page you are looking for</p>
+            <a href="/">Home Page</a>`)
+    }
+})
+
+//setup port we will listen to
+server.listen(5000)
+
+NB: We can test by using localhost:5000 or localhost:5000/ for home
+- localhost:5000/about - for the about page
+- localhost:5000/contact - for the error page
+
+******************************************************************************************************************************************************************************************
+NPM
+
+1.To initialize our project
+
+npm int (step by step)
+npm init -y (everything default)
+
+2.To install dependencies:
+
+npm install <packageName> e.g bootsrap
+
+- This creates a package.json file and puts the dependencies under the dependencies
+- The files are stored under node_modules folder
+
+NB: We can goto: npmjs.com for a whole lot of packages from other developers
+******************************************************************************************************************************************************************************************
+Dependencies
+
+- To use local dependencies we need to install them unlike the http which we can just use: const http = require('http') without installing
+- For local dependencies e.g if we need to use lodash or bootsrap, we first install: npm install lodash
+- Then we can use in the project: const _ = require('lodash')
+- These local dependences will insert a record in package.json under dependencies e.g "lodash": "^4.17.20" and node_modules folder gets created and a lodash folder is inserted
+- The bootstrap package comes with other dependencies e.g jquery, popper.js and all those will be stored in node_modules
+******************************************************************************************************************************************************************************************
+
+******************************************************************************************************************************************************************************************
+
+******************************************************************************************************************************************************************************************
+
+******************************************************************************************************************************************************************************************
+
+******************************************************************************************************************************************************************************************
+
+******************************************************************************************************************************************************************************************
